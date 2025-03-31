@@ -1,9 +1,9 @@
 package com.example.realworld.service;
 
-import com.example.realworld.exception.AppException;
-import com.example.realworld.exception.Error;
 import com.example.realworld.dto.ProfileResDto;
 import com.example.realworld.entity.UserEntity;
+import com.example.realworld.exception.AppException;
+import com.example.realworld.exception.Error;
 import com.example.realworld.repository.FollowRepository;
 import com.example.realworld.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
