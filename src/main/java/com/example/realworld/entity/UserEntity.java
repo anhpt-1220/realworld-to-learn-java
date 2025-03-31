@@ -1,4 +1,4 @@
-package com.example.realworld.model;
+package com.example.realworld.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

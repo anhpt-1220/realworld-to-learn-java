@@ -2,8 +2,8 @@ package com.example.realworld.service;
 
 import com.example.realworld.exception.AppException;
 import com.example.realworld.exception.Error;
-import com.example.realworld.model.ProfileResponse;
-import com.example.realworld.model.UserEntity;
+import com.example.realworld.dto.ProfileResDto;
+import com.example.realworld.entity.UserEntity;
 import com.example.realworld.repository.FollowRepository;
 import com.example.realworld.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +20,7 @@ public class ProfileService {
     private FollowRepository followRepository;
 
 
-    public ProfileResponse getProfile(String name) {
+    public ProfileResDto getProfile(String name) {
         UserEntity user = userRepository.findByUsername(name).orElseThrow(() -> new AppException(
                 Error.USER_NOT_FOUND));
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -30,7 +30,7 @@ public class ProfileService {
                 ));
         boolean following = followRepository.findByFollowingIdAndFollowerId(user.getId(),
                 currentUserEntity.getId()).isPresent();
-        return ProfileResponse.builder()
+        return ProfileResDto.builder()
                 .username(user.getUsername())
                 .image(user.getImage())
                 .bio(user.getBio())

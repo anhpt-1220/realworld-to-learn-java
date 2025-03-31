@@ -1,6 +1,6 @@
 package com.example.realworld.repository;
 
-import com.example.realworld.model.FollowEntity;
+import com.example.realworld.entity.FollowEntity;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

@@ -1,4 +1,4 @@
-package com.example.realworld.model;
+package com.example.realworld.dto;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
@@ -16,7 +16,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class AuthRequest {
+public class AuthReqDto {
 
     @NotEmpty(message = "Email cannot be empty")
     @Email(message = "Invalid email format")

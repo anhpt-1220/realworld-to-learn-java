@@ -1,8 +1,8 @@
 package com.example.realworld.controller;
 
-import com.example.realworld.model.AuthRequest;
-import com.example.realworld.model.RegistrationRequest;
-import com.example.realworld.model.UserRequest;
+import com.example.realworld.dto.AuthReqDto;
+import com.example.realworld.dto.RegistrationReqDto;
+import com.example.realworld.dto.UserReqDto;
 import com.example.realworld.model.UserResponse;
 import com.example.realworld.service.UserService;
 import jakarta.validation.Valid;
@@ -22,13 +22,13 @@ public class UserController {
 
     @PostMapping("/users")
     public ResponseEntity<UserResponse> registerUser(
-            @Valid @RequestBody RegistrationRequest registrationRequest) {
-        UserResponse userResponse = userService.registerUser(registrationRequest);
+            @Valid @RequestBody RegistrationReqDto registrationReqDto) {
+        UserResponse userResponse = userService.registerUser(registrationReqDto);
         return ResponseEntity.status(201).body(userResponse);
     }
 
     @PostMapping("/users/login")
-    public ResponseEntity<UserResponse> loginUser(@Valid @RequestBody AuthRequest loginRequest) {
+    public ResponseEntity<UserResponse> loginUser(@Valid @RequestBody AuthReqDto loginRequest) {
         return ResponseEntity.ok(userService.loginUser(loginRequest));
     }
 
@@ -39,7 +39,7 @@ public class UserController {
 
     @PutMapping("/user")
     public ResponseEntity<UserResponse> updateCurrentUser(
-            @Valid @RequestBody UserRequest userRequest) {
-        return ResponseEntity.ok(userService.updateCurrentUser(userRequest));
+            @Valid @RequestBody UserReqDto userReqDto) {
+        return ResponseEntity.ok(userService.updateCurrentUser(userReqDto));
     }
 }

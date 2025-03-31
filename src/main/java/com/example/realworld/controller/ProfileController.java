@@ -1,6 +1,6 @@
 package com.example.realworld.controller;
 
-import com.example.realworld.model.ProfileResponse;
+import com.example.realworld.dto.ProfileResDto;
 import com.example.realworld.service.ProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +17,7 @@ public class ProfileController {
     private ProfileService profileService;
 
     @GetMapping("/{username}")
-    public ResponseEntity<ProfileResponse> getByUsername(@PathVariable String username) {
+    public ResponseEntity<ProfileResDto> getByUsername(@PathVariable String username) {
         return ResponseEntity.ok(profileService.getProfile(username));
     }
 }

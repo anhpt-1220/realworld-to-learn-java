@@ -1,6 +1,6 @@
 package com.example.realworld.repository;
 
-import com.example.realworld.model.UserEntity;
+import com.example.realworld.entity.UserEntity;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 

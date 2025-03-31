@@ -1,4 +1,4 @@
-package com.example.realworld.model;
+package com.example.realworld.dto;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class UserRequest {
+public class UserReqDto {
 
     private String email;
 

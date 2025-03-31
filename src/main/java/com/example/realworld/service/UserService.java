@@ -1,15 +1,14 @@
 package com.example.realworld.service;
 
+import com.example.realworld.dto.AuthReqDto;
+import com.example.realworld.dto.RegistrationReqDto;
+import com.example.realworld.dto.UserReqDto;
+import com.example.realworld.entity.UserEntity;
 import com.example.realworld.exception.AppException;
 import com.example.realworld.exception.Error;
-import com.example.realworld.model.AuthRequest;
-import com.example.realworld.model.RegistrationRequest;
-import com.example.realworld.model.UserEntity;
-import com.example.realworld.model.UserRequest;
 import com.example.realworld.model.UserResponse;
 import com.example.realworld.repository.UserRepository;
 import com.example.realworld.security.TokenUtil;
-import jakarta.transaction.Transactional;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -33,22 +32,21 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Transactional
-    public UserResponse registerUser(RegistrationRequest registrationRequest) {
-        Optional.ofNullable(registrationRequest.getEmail())
+    public UserResponse registerUser(RegistrationReqDto registrationReqDto) {
+        Optional.ofNullable(registrationReqDto.getEmail())
                 .filter(userRepository::existsByEmail)
                 .ifPresent(email -> {
                     throw new AppException(Error.EMAIL_TAKEN);
                 });
-        Optional.ofNullable(registrationRequest.getEmail())
+        Optional.ofNullable(registrationReqDto.getEmail())
                 .filter(userRepository::existsByUsername)
                 .ifPresent(username -> {
                     throw new AppException(Error.USERNAME_TAKEN);
                 });
         UserEntity userEntity = userRepository.save(new UserEntity(
-                registrationRequest.getEmail(),
-                registrationRequest.getUsername(),
-                passwordEncoder.encode(registrationRequest.getPassword())
+                registrationReqDto.getEmail(),
+                registrationReqDto.getUsername(),
+                passwordEncoder.encode(registrationReqDto.getPassword())
         ));
         return UserResponse.builder()
                 .email(userEntity.getEmail())
@@ -59,8 +57,7 @@ public class UserService {
                 .token(tokenUtil.generateToken(userEntity.getEmail())).build();
     }
 
-    @Transactional
-    public UserResponse loginUser(AuthRequest loginRequest) {
+    public UserResponse loginUser(AuthReqDto loginRequest) {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                     loginRequest.getEmail(),
@@ -80,7 +77,6 @@ public class UserService {
                 .token(tokenUtil.generateToken(userEntity.getEmail())).build();
     }
 
-    @Transactional
     public UserResponse getCurrentUser() {
         UserEntity userEntity = getCurrentUserEntity();
         return UserResponse.builder()
@@ -92,19 +88,18 @@ public class UserService {
                 .token(tokenUtil.generateToken(userEntity.getEmail())).build();
     }
 
-    @Transactional
-    public UserResponse updateCurrentUser(UserRequest userRequest) {
-        Optional.ofNullable(userRequest.getEmail())
+    public UserResponse updateCurrentUser(UserReqDto userReqDto) {
+        Optional.ofNullable(userReqDto.getEmail())
                 .filter(userRepository::existsByEmail)
                 .ifPresent(email -> {
                     throw new AppException(Error.EMAIL_TAKEN);
                 });
-        Optional.ofNullable(userRequest.getUsername())
+        Optional.ofNullable(userReqDto.getUsername())
                 .filter(userRepository::existsByUsername)
                 .ifPresent(username -> {
                     throw new AppException(Error.USERNAME_TAKEN);
                 });
-        UserEntity currentUser = updateUserEntity(userRequest);
+        UserEntity currentUser = updateUserEntity(userReqDto);
         UserEntity userEntity = userRepository.save(currentUser);
         return UserResponse.builder()
                 .email(userEntity.getEmail())
@@ -115,16 +110,16 @@ public class UserService {
                 .token(tokenUtil.generateToken(userEntity.getEmail())).build();
     }
 
-    private UserEntity updateUserEntity(UserRequest userRequest) {
+    private UserEntity updateUserEntity(UserReqDto userReqDto) {
         UserEntity currentUser = getCurrentUserEntity();
-        Optional.ofNullable(userRequest.getEmail()).filter(email -> !email.isEmpty())
+        Optional.ofNullable(userReqDto.getEmail()).filter(email -> !email.isEmpty())
                 .ifPresent(currentUser::setEmail);
-        Optional.ofNullable(userRequest.getUsername()).filter(username -> !username.isEmpty())
+        Optional.ofNullable(userReqDto.getUsername()).filter(username -> !username.isEmpty())
                 .ifPresent(currentUser::setUsername);
-        Optional.ofNullable(userRequest.getBio()).filter(bio -> !bio.isEmpty())
+        Optional.ofNullable(userReqDto.getBio()).filter(bio -> !bio.isEmpty())
                 .ifPresent(currentUser::setBio);
-        Optional.ofNullable(userRequest.getDemo()).ifPresent(currentUser::setDemo);
-        Optional.ofNullable(userRequest.getImage()).filter(image -> !image.isEmpty())
+        Optional.ofNullable(userReqDto.getDemo()).ifPresent(currentUser::setDemo);
+        Optional.ofNullable(userReqDto.getImage()).filter(image -> !image.isEmpty())
                 .ifPresent(currentUser::setImage);
         return currentUser;
     }
