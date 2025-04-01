@@ -5,16 +5,18 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import java.security.Key;
 import java.util.Date;
-import java.util.Objects;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 
 @Component
 public class TokenUtil {
 
-    private final String SECRET_KEY = Objects.requireNonNull(System.getenv("JWT_SECRET_KEY"));
+    private final Key key;
 
-    private final Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+    public TokenUtil(@Value("${JWT_SECRET_KEY}") String secret) {
+        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+    }
 
     public String generateToken(String email) {
         return Jwts.builder()
