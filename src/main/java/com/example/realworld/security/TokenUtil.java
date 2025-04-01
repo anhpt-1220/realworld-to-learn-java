@@ -1,26 +1,20 @@
 package com.example.realworld.security;
 
-import java.util.Objects;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-
 import java.security.Key;
 import java.util.Date;
-
-import org.springframework.core.env.Environment;
+import java.util.Objects;
+import org.springframework.stereotype.Component;
 
 
 @Component
 public class TokenUtil {
 
-    @Autowired
-    private Environment env;
+    private final String SECRET_KEY = Objects.requireNonNull(System.getenv("JWT_SECRET_KEY"));
 
-    private final Key key = Keys.hmacShaKeyFor(
-            Objects.requireNonNull(env.getProperty("jwt.secret")).getBytes());
+    private final Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
 
     public String generateToken(String email) {
         return Jwts.builder()
