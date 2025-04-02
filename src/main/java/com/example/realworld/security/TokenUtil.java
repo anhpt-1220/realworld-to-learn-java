@@ -14,15 +14,18 @@ public class TokenUtil {
 
     private final Key key;
 
-    public TokenUtil(@Value("${JWT_SECRET_KEY}") String secret) {
+    private final Long expirationTime;
+
+    public TokenUtil(@Value("${jwt.secret}") String secret, @Value("${jwt.expiration-time}") String expirationTime) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
+        this.expirationTime = Long.parseLong(expirationTime);
     }
 
     public String generateToken(String email) {
         return Jwts.builder()
                 .setSubject(email)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
+                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
