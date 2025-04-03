@@ -10,7 +10,9 @@ public enum Error {
     USER_NOT_FOUND("User not found", HttpStatus.UNPROCESSABLE_ENTITY),
     INVALID_LOGIN("Invalid email or password", HttpStatus.UNAUTHORIZED),
     ALREADY_FOLLOWED_USER("Already followed user", HttpStatus.UNPROCESSABLE_ENTITY),
-    FOLLOW_NOT_FOUND("Follow not found", HttpStatus.UNPROCESSABLE_ENTITY);
+    FOLLOW_NOT_FOUND("Follow not found", HttpStatus.UNPROCESSABLE_ENTITY),
+    ARTICLE_NOT_FOUND("Article not found", HttpStatus.NOT_FOUND),
+    ARTICLE_DELETE_FORBIDDEN("You are not allowed to delete this article", HttpStatus.FORBIDDEN);
 
     private final String message;
     private final HttpStatus status;

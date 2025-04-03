@@ -6,7 +6,7 @@ import com.example.realworld.dto.UserReqDto;
 import com.example.realworld.entity.UserEntity;
 import com.example.realworld.exception.AppException;
 import com.example.realworld.exception.Error;
-import com.example.realworld.model.UserResponse;
+import com.example.realworld.dto.UserResDto;
 import com.example.realworld.repository.UserRepository;
 import com.example.realworld.security.TokenUtil;
 import java.util.Optional;
@@ -32,7 +32,7 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public UserResponse registerUser(RegistrationReqDto registrationReqDto) {
+    public UserResDto registerUser(RegistrationReqDto registrationReqDto) {
         Optional.ofNullable(registrationReqDto.getEmail())
                 .filter(userRepository::existsByEmail)
                 .ifPresent(email -> {
@@ -48,7 +48,7 @@ public class UserService {
                 registrationReqDto.getUsername(),
                 passwordEncoder.encode(registrationReqDto.getPassword())
         ));
-        return UserResponse.builder()
+        return UserResDto.builder()
                 .email(userEntity.getEmail())
                 .username(userEntity.getUsername())
                 .image(userEntity.getImage())
@@ -57,7 +57,7 @@ public class UserService {
                 .token(tokenUtil.generateToken(userEntity.getEmail())).build();
     }
 
-    public UserResponse loginUser(AuthReqDto loginRequest) {
+    public UserResDto loginUser(AuthReqDto loginRequest) {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                     loginRequest.getEmail(),
@@ -68,7 +68,7 @@ public class UserService {
         }
         UserEntity userEntity = userRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new AppException(Error.USER_NOT_FOUND));
-        return UserResponse.builder()
+        return UserResDto.builder()
                 .email(userEntity.getEmail())
                 .username(userEntity.getUsername())
                 .image(userEntity.getImage())
@@ -77,9 +77,9 @@ public class UserService {
                 .token(tokenUtil.generateToken(userEntity.getEmail())).build();
     }
 
-    public UserResponse getCurrentUser() {
+    public UserResDto getCurrentUser() {
         UserEntity userEntity = getCurrentUserEntity();
-        return UserResponse.builder()
+        return UserResDto.builder()
                 .email(userEntity.getEmail())
                 .username(userEntity.getUsername())
                 .image(userEntity.getImage())
@@ -88,7 +88,7 @@ public class UserService {
                 .token(tokenUtil.generateToken(userEntity.getEmail())).build();
     }
 
-    public UserResponse updateCurrentUser(UserReqDto userReqDto) {
+    public UserResDto updateCurrentUser(UserReqDto userReqDto) {
         Optional.ofNullable(userReqDto.getEmail())
                 .filter(userRepository::existsByEmail)
                 .ifPresent(email -> {
@@ -101,7 +101,7 @@ public class UserService {
                 });
         UserEntity currentUser = updateUserEntity(userReqDto);
         UserEntity userEntity = userRepository.save(currentUser);
-        return UserResponse.builder()
+        return UserResDto.builder()
                 .email(userEntity.getEmail())
                 .username(userEntity.getUsername())
                 .image(userEntity.getImage())
@@ -124,7 +124,7 @@ public class UserService {
         return currentUser;
     }
 
-    private UserEntity getCurrentUserEntity() {
+    protected UserEntity getCurrentUserEntity() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(Error.USER_NOT_FOUND));

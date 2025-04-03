@@ -3,22 +3,21 @@ package com.example.realworld.dto;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@JsonTypeName("profile")
+@JsonTypeName("article")
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
-@Data
-@Builder
+@NoArgsConstructor
 @AllArgsConstructor
-public class ProfileResDto {
+@Getter
+@Setter
+public class UpdateArticleReqDto {
 
-    private String username;
+    private String title;
 
-    private String image;
+    private String description;
 
-    private String bio;
-
-    @Builder.Default
-    private Boolean following = false;
+    private String body;
 }
