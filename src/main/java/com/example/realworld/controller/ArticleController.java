@@ -1,11 +1,10 @@
 package com.example.realworld.controller;
 
-import com.example.realworld.dto.ArticleReqDto;
-import com.example.realworld.dto.ArticleResDto;
+import com.example.realworld.dto.*;
 import com.example.realworld.dto.ArticleResDto.MultiArticlesResDto;
 import com.example.realworld.dto.ArticleResDto.SingleArticlesResDto;
-import com.example.realworld.dto.UpdateArticleReqDto;
 import com.example.realworld.service.ArticleService;
+import com.example.realworld.service.CommentService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +24,9 @@ public class ArticleController {
 
     @Autowired
     private ArticleService articleService;
+
+    @Autowired
+    private CommentService commentService;
 
     @PostMapping
     public ResponseEntity<SingleArticlesResDto> createArticle(
@@ -64,5 +66,22 @@ public class ArticleController {
             @RequestParam(defaultValue = "0") int offset,
             @RequestParam(defaultValue = "10") int limit) {
         return ResponseEntity.ok(articleService.getFeedArticles(offset, limit));
+    }
+
+    @PostMapping("/{slug}/comments")
+    public ResponseEntity<CommentResDto.SingleComment> createCommentsToAnArticle(@PathVariable String slug, @RequestBody @Valid CommentReqDto commentReqDto) {
+        return ResponseEntity.ok(commentService.createCommentsToAnArticle(slug, commentReqDto));
+    }
+
+    @GetMapping("/{slug}/comments")
+    public ResponseEntity<CommentResDto.MultipleComments> getCommentsToAnArticle(@PathVariable String slug) {
+        return ResponseEntity.ok(commentService.getCommentsToAnArticle(slug));
+    }
+
+
+    @DeleteMapping("/{slug}/comments/{commentId}")
+    public ResponseEntity<?> deleteComment(@PathVariable("slug") String slug, @PathVariable("commentId") Long commentId) {
+        commentService.deleteComment(slug, commentId);
+        return ResponseEntity.ok().build();
     }
 }
