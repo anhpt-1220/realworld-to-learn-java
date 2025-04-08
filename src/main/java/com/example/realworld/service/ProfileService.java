@@ -1,7 +1,6 @@
 package com.example.realworld.service;
 
 import com.example.realworld.dto.ProfileResDto;
-import com.example.realworld.entity.FollowEntity;
 import com.example.realworld.entity.UserEntity;
 import com.example.realworld.exception.AppException;
 import com.example.realworld.exception.Error;
@@ -36,50 +35,6 @@ public class ProfileService {
                 .image(user.getImage())
                 .bio(user.getBio())
                 .following(following)
-                .build();
-    }
-
-    public ProfileResDto followUser(String name) {
-        UserEntity followingUser = userRepository.findByUsername(name)
-                .orElseThrow(() -> new AppException(
-                        Error.USER_NOT_FOUND));
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserEntity followerUser = userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(
-                        Error.USER_NOT_FOUND
-                ));
-        followRepository.findByFollowingIdAndFollowerId(followingUser.getId(), followerUser.getId())
-                .ifPresent(follow -> {
-                    throw new AppException(Error.ALREADY_FOLLOWED_USER);
-                });
-
-        followRepository.save(new FollowEntity(followingUser, followerUser));
-        return ProfileResDto.builder()
-                .username(followingUser.getUsername())
-                .image(followingUser.getImage())
-                .bio(followingUser.getBio())
-                .following(true)
-                .build();
-    }
-
-    public ProfileResDto unfollowUser(String name) {
-        UserEntity followingUser = userRepository.findByUsername(name)
-                .orElseThrow(() -> new AppException(
-                        Error.USER_NOT_FOUND));
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserEntity followerUser = userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(
-                        Error.USER_NOT_FOUND
-                ));
-        FollowEntity follow = followRepository.findByFollowingIdAndFollowerId(followingUser.getId(),
-                        followerUser.getId())
-                .orElseThrow(() -> new AppException(Error.FOLLOW_NOT_FOUND));
-        followRepository.delete(follow);
-        return ProfileResDto.builder()
-                .username(followingUser.getUsername())
-                .image(followingUser.getImage())
-                .bio(followingUser.getBio())
-                .following(false)
                 .build();
     }
 }

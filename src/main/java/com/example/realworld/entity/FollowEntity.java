@@ -34,9 +34,4 @@ public class FollowEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "follower")
     private UserEntity follower;
-
-    public FollowEntity(UserEntity following, UserEntity follower) {
-        this.following = following;
-        this.follower = follower;
-    }
 }
