@@ -3,7 +3,7 @@ package com.example.realworld.controller;
 import com.example.realworld.dto.AuthReqDto;
 import com.example.realworld.dto.RegistrationReqDto;
 import com.example.realworld.dto.UserReqDto;
-import com.example.realworld.model.UserResponse;
+import com.example.realworld.dto.UserResDto;
 import com.example.realworld.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,24 +21,24 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/users")
-    public ResponseEntity<UserResponse> registerUser(
+    public ResponseEntity<UserResDto> registerUser(
             @Valid @RequestBody RegistrationReqDto registrationReqDto) {
-        UserResponse userResponse = userService.registerUser(registrationReqDto);
+        UserResDto userResponse = userService.registerUser(registrationReqDto);
         return ResponseEntity.status(201).body(userResponse);
     }
 
     @PostMapping("/users/login")
-    public ResponseEntity<UserResponse> loginUser(@Valid @RequestBody AuthReqDto loginRequest) {
+    public ResponseEntity<UserResDto> loginUser(@Valid @RequestBody AuthReqDto loginRequest) {
         return ResponseEntity.ok(userService.loginUser(loginRequest));
     }
 
     @GetMapping("/user")
-    public ResponseEntity<UserResponse> getCurrentUser() {
+    public ResponseEntity<UserResDto> getCurrentUser() {
         return ResponseEntity.ok(userService.getCurrentUser());
     }
 
     @PutMapping("/user")
-    public ResponseEntity<UserResponse> updateCurrentUser(
+    public ResponseEntity<UserResDto> updateCurrentUser(
             @Valid @RequestBody UserReqDto userReqDto) {
         return ResponseEntity.ok(userService.updateCurrentUser(userReqDto));
     }

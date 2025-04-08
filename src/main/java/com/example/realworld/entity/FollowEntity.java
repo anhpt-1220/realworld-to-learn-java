@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "_user_follows", uniqueConstraints = {
         @UniqueConstraint(name = "u_follow_following_pair_must_be_unique", columnNames = {
-                "following", "follower"})
+                "following", "followedBy"})
 })
 @NoArgsConstructor
 @AllArgsConstructor
@@ -32,11 +32,11 @@ public class FollowEntity {
     private UserEntity following;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false, name = "follower")
-    private UserEntity follower;
+    @JoinColumn(nullable = false, name = "followedBy")
+    private UserEntity followedBy;
 
     public FollowEntity(UserEntity following, UserEntity follower) {
         this.following = following;
-        this.follower = follower;
+        this.followedBy = follower;
     }
 }

@@ -1,4 +1,4 @@
-package com.example.realworld.model;
+package com.example.realworld.dto;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
@@ -9,7 +9,7 @@ import lombok.Data;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
 @Data
 @Builder
-public class UserResponse {
+public class UserResDto {
 
     private String email;
 
