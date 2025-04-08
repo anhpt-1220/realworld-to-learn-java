@@ -12,6 +12,7 @@ public enum Error {
     ALREADY_FOLLOWED_USER("Already followed user", HttpStatus.UNPROCESSABLE_ENTITY),
     FOLLOW_NOT_FOUND("Follow not found", HttpStatus.UNPROCESSABLE_ENTITY),
     ARTICLE_NOT_FOUND("Article not found", HttpStatus.NOT_FOUND),
+    COMMENT_NOT_FOUND("Comment not found", HttpStatus.NOT_FOUND),
     ARTICLE_DELETE_FORBIDDEN("You are not allowed to delete this article", HttpStatus.FORBIDDEN);
 
     private final String message;
