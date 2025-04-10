@@ -34,13 +34,13 @@ public class UserController {
         return ResponseEntity.ok(userService.loginUser(loginRequest));
     }
 
-    @GetMapping("/user")
+    @GetMapping("/users/me")
     public ResponseEntity<UserResDto> getCurrentUser(
             @AuthenticationPrincipal AppUserDetails appUserDetails) {
         return ResponseEntity.ok(userService.getCurrentUser(appUserDetails));
     }
 
-    @PutMapping("/user")
+    @PutMapping("/users/me")
     public ResponseEntity<UserResDto> updateCurrentUser(
             @Valid @RequestBody UserReqDto userReqDto,
             @AuthenticationPrincipal AppUserDetails appUserDetails) {

@@ -10,4 +10,3 @@ public class TagReqDto {
 
     List<String> tags;
 }
-

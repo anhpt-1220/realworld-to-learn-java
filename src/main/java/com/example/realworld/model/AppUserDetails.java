@@ -52,4 +52,3 @@ public class AppUserDetails implements UserDetails {
         return user;
     }
 }
-
