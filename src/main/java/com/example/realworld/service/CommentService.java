@@ -8,6 +8,7 @@ import com.example.realworld.entity.CommentEntity;
 import com.example.realworld.entity.UserEntity;
 import com.example.realworld.exception.AppException;
 import com.example.realworld.exception.Error;
+import com.example.realworld.model.AppUserDetails;
 import com.example.realworld.repository.ArticleRepository;
 import com.example.realworld.repository.CommentRepository;
 import com.example.realworld.repository.FollowRepository;
@@ -32,10 +33,10 @@ public class CommentService {
     private UserService userService;
 
     public CommentResDto.SingleComment createCommentsToAnArticle(String slug,
-            CommentReqDto commentReqDto) {
+            CommentReqDto commentReqDto, AppUserDetails appUserDetails) {
         ArticleEntity articleEntity = articleRepository.findBySlug(slug)
                 .orElseThrow(() -> new AppException(Error.ARTICLE_NOT_FOUND));
-        UserEntity currentUser = userService.getCurrentUserEntity();
+        UserEntity currentUser = appUserDetails.getUserEntity();
         CommentEntity commentEntity = commentRepository.save(
                 new CommentEntity(commentReqDto.getBody(), currentUser, articleEntity));
         return new CommentResDto.SingleComment(
@@ -53,14 +54,14 @@ public class CommentService {
         );
     }
 
-    public CommentResDto.MultipleComments getCommentsToAnArticle(String slug) {
+    public CommentResDto.MultipleComments getCommentsToAnArticle(String slug, AppUserDetails appUserDetails) {
         ArticleEntity articleEntity = articleRepository.findBySlug(slug)
                 .orElseThrow(() -> new AppException(Error.ARTICLE_NOT_FOUND));
         List<CommentEntity> commentEntities = commentRepository.findByArticleId(
                 articleEntity.getId());
         final List<Long> followingIds = new ArrayList<>();
         try {
-            UserEntity currentUser = userService.getCurrentUserEntity();
+            UserEntity currentUser = appUserDetails.getUserEntity();
             followingIds.addAll(followRepository.findByFollowedById(currentUser.getId()).stream()
                     .map(e -> e.getFollowing().getId()).toList());
         } catch (AppException ignored) {

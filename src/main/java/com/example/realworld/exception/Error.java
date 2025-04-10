@@ -13,6 +13,8 @@ public enum Error {
     FOLLOW_NOT_FOUND("Follow not found", HttpStatus.UNPROCESSABLE_ENTITY),
     ARTICLE_NOT_FOUND("Article not found", HttpStatus.NOT_FOUND),
     COMMENT_NOT_FOUND("Comment not found", HttpStatus.NOT_FOUND),
+    ALREADY_FAVORITE_ARTICLE("Already favorite article", HttpStatus.UNPROCESSABLE_ENTITY),
+    FAVORITE_NOT_FOUND("favorite not found", HttpStatus.NOT_FOUND),
     ARTICLE_DELETE_FORBIDDEN("You are not allowed to delete this article", HttpStatus.FORBIDDEN);
 
     private final String message;

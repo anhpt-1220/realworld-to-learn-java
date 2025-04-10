@@ -7,11 +7,14 @@ import com.example.realworld.dto.ArticleResDto.SingleArticlesResDto;
 import com.example.realworld.dto.ProfileResDto;
 import com.example.realworld.dto.UpdateArticleReqDto;
 import com.example.realworld.entity.ArticleEntity;
+import com.example.realworld.entity.FavoriteEntity;
 import com.example.realworld.entity.TagEntity;
 import com.example.realworld.entity.UserEntity;
 import com.example.realworld.exception.AppException;
 import com.example.realworld.exception.Error;
+import com.example.realworld.model.AppUserDetails;
 import com.example.realworld.repository.ArticleRepository;
+import com.example.realworld.repository.FavoriteRepository;
 import com.example.realworld.repository.FollowRepository;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
@@ -22,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -34,14 +38,18 @@ public class ArticleService {
     private FollowRepository followRepository;
 
     @Autowired
+    private FavoriteRepository favoriteRepository;
+
+    @Autowired
     private UserService userService;
 
     @Transactional
-    public SingleArticlesResDto createArticle(ArticleReqDto articleReqDto) {
+    public SingleArticlesResDto createArticle(ArticleReqDto articleReqDto,
+            AppUserDetails appUserDetails) {
         String slug =
                 String.join("-", articleReqDto.getTitle().split(" ")) + "-" + UUID.randomUUID()
                         .toString().substring(0, 8);
-        UserEntity currentUser = userService.getCurrentUserEntity();
+        UserEntity currentUser = appUserDetails.getUserEntity();
         ArticleEntity articleEntity = new ArticleEntity(slug, articleReqDto.getTitle(),
                 articleReqDto.getDescription(), articleReqDto.getBody(), currentUser);
         articleEntity.setTagList(
@@ -59,16 +67,18 @@ public class ArticleService {
                 .body(savedArticleEntity.getBody())
                 .createdAt(savedArticleEntity.getCreatedAt())
                 .updatedAt(savedArticleEntity.getUpdatedAt())
+                .favorited(savedArticleEntity.getFavoriteList().stream()
+                        .anyMatch(f -> f.getId().equals(savedArticleEntity.getAuthor().getId())))
                 .author(profileResDto)
                 .tagList(savedArticleEntity.getTagList().stream().map(TagEntity::getTag).toList())
                 .build()
         );
     }
 
-    public SingleArticlesResDto getArticle(String slug) {
+    public SingleArticlesResDto getArticle(String slug, AppUserDetails appUserDetails) {
         ArticleEntity articleEntity = articleRepository.findBySlug(slug)
                 .orElseThrow(() -> new AppException(Error.ARTICLE_NOT_FOUND));
-        UserEntity currentUser = userService.getCurrentUserEntity();
+        UserEntity currentUser = appUserDetails.getUserEntity();
         boolean following = followRepository.findByFollowingIdAndFollowedById(articleEntity.getId(),
                 currentUser.getId()).isPresent();
         ProfileResDto profileResDto = (ProfileResDto.builder()
@@ -82,6 +92,8 @@ public class ArticleService {
                 .body(articleEntity.getBody())
                 .createdAt(articleEntity.getCreatedAt())
                 .updatedAt(articleEntity.getUpdatedAt())
+                .favorited(articleEntity.getFavoriteList().stream()
+                        .anyMatch(f -> f.getId().equals(articleEntity.getAuthor().getId())))
                 .author(profileResDto)
                 .tagList(articleEntity.getTagList().stream().map(TagEntity::getTag).toList())
                 .build()
@@ -90,7 +102,7 @@ public class ArticleService {
 
     @Transactional
     public SingleArticlesResDto updateArticle(String slug,
-            UpdateArticleReqDto updateArticleReqDto) {
+            UpdateArticleReqDto updateArticleReqDto, AppUserDetails appUserDetails) {
         ArticleEntity articleEntity = articleRepository.findBySlug(slug)
                 .orElseThrow(() -> new AppException(Error.ARTICLE_NOT_FOUND));
         Optional.ofNullable(updateArticleReqDto.getTitle()).filter(title -> !title.isEmpty())
@@ -107,7 +119,7 @@ public class ArticleService {
         Optional.ofNullable(updateArticleReqDto.getBody()).filter(body -> !body.isEmpty())
                 .ifPresent(articleEntity::setBody);
         ArticleEntity savedArticleEntity = articleRepository.save(articleEntity);
-        UserEntity currentUser = userService.getCurrentUserEntity();
+        UserEntity currentUser = appUserDetails.getUserEntity();
         boolean following = followRepository.findByFollowingIdAndFollowedById(
                 articleEntity.getAuthor().getId(), currentUser.getId()).isPresent();
         ProfileResDto profileResDto = ProfileResDto.builder()
@@ -124,6 +136,8 @@ public class ArticleService {
                         .createdAt(savedArticleEntity.getCreatedAt())
                         .updatedAt(savedArticleEntity.getUpdatedAt())
                         .author(profileResDto)
+                        .favorited(articleEntity.getFavoriteList().stream()
+                                .anyMatch(f -> f.getId().equals(articleEntity.getAuthor().getId())))
                         .tagList(savedArticleEntity.getTagList().stream().map(TagEntity::getTag)
                                 .toList())
                         .build()
@@ -131,24 +145,26 @@ public class ArticleService {
     }
 
     @Transactional
-    public void deleteArticle(String slug) {
+    public void deleteArticle(String slug, AppUserDetails appUserDetails) {
         ArticleEntity articleEntity = articleRepository.findBySlug(slug)
                 .orElseThrow(() -> new AppException(Error.ARTICLE_NOT_FOUND));
-        UserEntity currentUser = userService.getCurrentUserEntity();
+        UserEntity currentUser = appUserDetails.getUserEntity();
         if (!articleEntity.getAuthor().getId().equals(currentUser.getId())) {
             throw new AppException(Error.ARTICLE_DELETE_FORBIDDEN);
         }
         articleRepository.delete(articleEntity);
     }
 
-    public MultiArticlesResDto getArticlesByTag(String tag, String author, int offset, int limit) {
+    public MultiArticlesResDto getArticlesByTag(String tag, String author, int offset, int limit,
+            @Nullable AppUserDetails appUserDetails) {
         Pageable pageable = PageRequest.of(offset, limit);
+        final UserEntity currentUser =
+                appUserDetails != null ? appUserDetails.getUserEntity() : null;
         final List<Long> followingIds = new ArrayList<>();
-        try {
-            UserEntity currentUser = userService.getCurrentUserEntity();
-            followingIds.addAll(followRepository.findByFollowedById(currentUser.getId()).stream()
+        if (currentUser != null) {
+            followingIds.addAll(followRepository.findByFollowedById(currentUser.getId())
+                    .stream()
                     .map(e -> e.getFollowing().getId()).toList());
-        } catch (AppException ignored) {
         }
 
         Page<ArticleEntity> articleEntities = articleRepository.findArticles(tag, author, pageable);
@@ -161,6 +177,9 @@ public class ArticleService {
                         .tagList(e.getTagList().stream().map(TagEntity::getTag).toList())
                         .createdAt(e.getCreatedAt())
                         .updatedAt(e.getUpdatedAt())
+                        .favorited(currentUser != null && e.getFavoriteList().stream().anyMatch(
+                                favoriteEntity -> favoriteEntity.getUser().getId()
+                                        .equals(currentUser.getId())))
                         .author(ProfileResDto.builder()
                                 .username(e.getAuthor().getUsername())
                                 .image(e.getAuthor().getImage())
@@ -171,9 +190,10 @@ public class ArticleService {
                 articleEntities.getTotalElements());
     }
 
-    public MultiArticlesResDto getFeedArticles(int offset, int limit) {
+    public MultiArticlesResDto getFeedArticles(int offset, int limit,
+            AppUserDetails appUserDetails) {
         Pageable pageable = PageRequest.of(offset, limit);
-        UserEntity currentUser = userService.getCurrentUserEntity();
+        UserEntity currentUser = appUserDetails.getUserEntity();
         List<Long> followingIds = followRepository.findByFollowedById(currentUser.getId()).stream()
                 .map(e -> e.getFollowing().getId()).toList();
         Page<ArticleEntity> articleEntities = articleRepository.findByAuthorIds(followingIds,
@@ -187,6 +207,8 @@ public class ArticleService {
                         .tagList(e.getTagList().stream().map(TagEntity::getTag).toList())
                         .createdAt(e.getCreatedAt())
                         .updatedAt(e.getUpdatedAt())
+                        .favorited(e.getFavoriteList().stream()
+                                .anyMatch(f -> f.getId().equals(e.getAuthor().getId())))
                         .author(ProfileResDto.builder()
                                 .username(e.getAuthor().getUsername())
                                 .image(e.getAuthor().getImage())
@@ -195,5 +217,68 @@ public class ArticleService {
                         .build()
                 ).toList(),
                 articleEntities.getTotalElements());
+    }
+
+    public SingleArticlesResDto favoriteArticle(String slug, AppUserDetails appUserDetails) {
+        ArticleEntity articleEntity = articleRepository.findBySlug(slug)
+                .orElseThrow(() -> new AppException(Error.ARTICLE_NOT_FOUND));
+        UserEntity currentUser = appUserDetails.getUserEntity();
+        favoriteRepository.findByArticleIdAndUserId(articleEntity.getId(), currentUser.getId())
+                .ifPresent(favoriteEntity -> {
+                    throw new AppException(Error.ALREADY_FAVORITE_ARTICLE);
+                });
+        boolean following = followRepository.findByFollowingIdAndFollowedById(
+                articleEntity.getAuthor().getId(), currentUser.getId()).isPresent();
+        favoriteRepository.save(new FavoriteEntity(articleEntity, currentUser));
+        ProfileResDto profileResDto = ProfileResDto.builder()
+                .username(articleEntity.getAuthor().getUsername())
+                .bio(articleEntity.getAuthor().getBio())
+                .image(articleEntity.getAuthor().getImage())
+                .following(following).build();
+        return new SingleArticlesResDto(
+                ArticleResDto.builder()
+                        .title(articleEntity.getTitle())
+                        .slug(articleEntity.getSlug())
+                        .description(articleEntity.getDescription())
+                        .body(articleEntity.getBody())
+                        .createdAt(articleEntity.getCreatedAt())
+                        .updatedAt(articleEntity.getUpdatedAt())
+                        .author(profileResDto)
+                        .favorited(true)
+                        .tagList(articleEntity.getTagList().stream().map(TagEntity::getTag)
+                                .toList())
+                        .build()
+        );
+    }
+
+    public SingleArticlesResDto unfavoriteArticle(String slug, AppUserDetails appUserDetails) {
+        ArticleEntity articleEntity = articleRepository.findBySlug(slug)
+                .orElseThrow(() -> new AppException(Error.ARTICLE_NOT_FOUND));
+        UserEntity currentUser = appUserDetails.getUserEntity();
+        FavoriteEntity favoriteEntity = favoriteRepository.findByArticleIdAndUserId(
+                        articleEntity.getId(), currentUser.getId())
+                .orElseThrow(() -> new AppException(Error.FAVORITE_NOT_FOUND));
+        boolean following = followRepository.findByFollowingIdAndFollowedById(
+                articleEntity.getAuthor().getId(), currentUser.getId()).isPresent();
+        favoriteRepository.delete(favoriteEntity);
+        ProfileResDto profileResDto = ProfileResDto.builder()
+                .username(articleEntity.getAuthor().getUsername())
+                .bio(articleEntity.getAuthor().getBio())
+                .image(articleEntity.getAuthor().getImage())
+                .following(following).build();
+        return new SingleArticlesResDto(
+                ArticleResDto.builder()
+                        .title(articleEntity.getTitle())
+                        .slug(articleEntity.getSlug())
+                        .description(articleEntity.getDescription())
+                        .body(articleEntity.getBody())
+                        .createdAt(articleEntity.getCreatedAt())
+                        .updatedAt(articleEntity.getUpdatedAt())
+                        .author(profileResDto)
+                        .favorited(false)
+                        .tagList(articleEntity.getTagList().stream().map(TagEntity::getTag)
+                                .toList())
+                        .build()
+        );
     }
 }

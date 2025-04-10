@@ -3,17 +3,17 @@ package com.example.realworld.service;
 import com.example.realworld.dto.AuthReqDto;
 import com.example.realworld.dto.RegistrationReqDto;
 import com.example.realworld.dto.UserReqDto;
+import com.example.realworld.dto.UserResDto;
 import com.example.realworld.entity.UserEntity;
 import com.example.realworld.exception.AppException;
 import com.example.realworld.exception.Error;
-import com.example.realworld.dto.UserResDto;
+import com.example.realworld.model.AppUserDetails;
 import com.example.realworld.repository.UserRepository;
 import com.example.realworld.security.TokenUtil;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -77,8 +77,8 @@ public class UserService {
                 .token(tokenUtil.generateToken(userEntity.getEmail())).build();
     }
 
-    public UserResDto getCurrentUser() {
-        UserEntity userEntity = getCurrentUserEntity();
+    public UserResDto getCurrentUser(AppUserDetails appUserDetails) {
+        UserEntity userEntity = appUserDetails.getUserEntity();
         return UserResDto.builder()
                 .email(userEntity.getEmail())
                 .username(userEntity.getUsername())
@@ -88,7 +88,7 @@ public class UserService {
                 .token(tokenUtil.generateToken(userEntity.getEmail())).build();
     }
 
-    public UserResDto updateCurrentUser(UserReqDto userReqDto) {
+    public UserResDto updateCurrentUser(UserReqDto userReqDto, AppUserDetails appUserDetails) {
         Optional.ofNullable(userReqDto.getEmail())
                 .filter(userRepository::existsByEmail)
                 .ifPresent(email -> {
@@ -99,7 +99,7 @@ public class UserService {
                 .ifPresent(username -> {
                     throw new AppException(Error.USERNAME_TAKEN);
                 });
-        UserEntity currentUser = updateUserEntity(userReqDto);
+        UserEntity currentUser = updateUserEntity(userReqDto, appUserDetails);
         UserEntity userEntity = userRepository.save(currentUser);
         return UserResDto.builder()
                 .email(userEntity.getEmail())
@@ -110,8 +110,8 @@ public class UserService {
                 .token(tokenUtil.generateToken(userEntity.getEmail())).build();
     }
 
-    private UserEntity updateUserEntity(UserReqDto userReqDto) {
-        UserEntity currentUser = getCurrentUserEntity();
+    private UserEntity updateUserEntity(UserReqDto userReqDto, AppUserDetails appUserDetails) {
+        UserEntity currentUser = appUserDetails.getUserEntity();
         Optional.ofNullable(userReqDto.getEmail()).filter(email -> !email.isEmpty())
                 .ifPresent(currentUser::setEmail);
         Optional.ofNullable(userReqDto.getUsername()).filter(username -> !username.isEmpty())
@@ -122,11 +122,5 @@ public class UserService {
         Optional.ofNullable(userReqDto.getImage()).filter(image -> !image.isEmpty())
                 .ifPresent(currentUser::setImage);
         return currentUser;
-    }
-
-    protected UserEntity getCurrentUserEntity() {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(Error.USER_NOT_FOUND));
     }
 }
