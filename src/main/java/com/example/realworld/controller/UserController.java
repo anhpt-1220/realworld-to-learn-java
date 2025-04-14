@@ -4,10 +4,12 @@ import com.example.realworld.dto.AuthReqDto;
 import com.example.realworld.dto.RegistrationReqDto;
 import com.example.realworld.dto.UserReqDto;
 import com.example.realworld.dto.UserResDto;
+import com.example.realworld.model.AppUserDetails;
 import com.example.realworld.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -33,13 +35,15 @@ public class UserController {
     }
 
     @GetMapping("/user")
-    public ResponseEntity<UserResDto> getCurrentUser() {
-        return ResponseEntity.ok(userService.getCurrentUser());
+    public ResponseEntity<UserResDto> getCurrentUser(
+            @AuthenticationPrincipal AppUserDetails appUserDetails) {
+        return ResponseEntity.ok(userService.getCurrentUser(appUserDetails));
     }
 
     @PutMapping("/user")
     public ResponseEntity<UserResDto> updateCurrentUser(
-            @Valid @RequestBody UserReqDto userReqDto) {
-        return ResponseEntity.ok(userService.updateCurrentUser(userReqDto));
+            @Valid @RequestBody UserReqDto userReqDto,
+            @AuthenticationPrincipal AppUserDetails appUserDetails) {
+        return ResponseEntity.ok(userService.updateCurrentUser(userReqDto, appUserDetails));
     }
 }

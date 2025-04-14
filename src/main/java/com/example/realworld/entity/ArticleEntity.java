@@ -59,6 +59,9 @@ public class ArticleEntity {
     @OneToMany(mappedBy = "article", cascade = CascadeType.ALL)
     private List<TagEntity> tagList;
 
+    @OneToMany(mappedBy = "article", cascade = CascadeType.ALL)
+    private List<FavoriteEntity> favoriteList;
+
     public ArticleEntity(String slug, String title, String description, String body,
             UserEntity author) {
         this.slug = slug;
